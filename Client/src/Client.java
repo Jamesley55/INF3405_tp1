@@ -120,21 +120,20 @@ public class Client {
 		int packetSize;
 
 		int fileLenght = (int) newFile.length();
-		out.write(fileLenght);
+		out.writeInt(fileLenght);
 
 		byte [] buffer = new byte[fileLenght];
 		while((packetSize = uploadedFile.read(buffer)) != -1){
 			out.write(buffer, 0, packetSize);
 
 		}
-		out.close();
 		uploadedFile.close();
 	}
 
 	public static void download(String nomFichier, boolean isArchived, DataInputStream in) throws Exception{
 
 		String currentRep = System.getProperty("user.dir");
-		DataInputStream pin =  new DataInputStream(socket.getInputStream());
+		DataInputStream fin =  new DataInputStream(socket.getInputStream());
 
 		if(isArchived){
 			nomFichier = nomFichier.substring(0, nomFichier.indexOf(".")) + ".zip";
@@ -151,7 +150,7 @@ public class Client {
 		int size = in.readInt();
 		byte[] buffer = new byte[size];
 		int sizeOfPacket;
-		while ((sizeOfPacket = pin.read(buffer)) != -1) {   // store packet de donne dans le fichier
+		while ((sizeOfPacket = fin.read(buffer)) != -1) {   // store packet de donne dans le fichier
 			if(size <= 0)
 				break;
 			size -= sizeOfPacket;

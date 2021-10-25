@@ -250,9 +250,14 @@ class ClientHandler extends Thread {
 
         File newFile = new File(currentRep + "/" + nomFichier);
         FileOutputStream fileOut = new FileOutputStream(newFile);
-        byte[] buffer = new byte[in.read()];
+        int size = in.readInt();
+        byte[] buffer = new byte[size];
         int sizeOfPacket;
-        while ((sizeOfPacket = in.read(buffer)) != -1) {
+        DataInputStream fin =  new DataInputStream(socket.getInputStream());
+        while ((sizeOfPacket = fin.read(buffer)) != -1) {
+            if(size <= 0)
+                break;
+            size -= sizeOfPacket;
             fileOut.write(buffer, 0, sizeOfPacket); // store les donne contenue dans le buffer et le met dans le fichier "newFile" cree
         }
         fileOut.close();
