@@ -1,3 +1,5 @@
+import com.sun.tools.internal.ws.wsdl.document.Output;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -134,11 +136,14 @@ class ClientHandler extends Thread {
                     break;
                 case "download":
                     if (clientInputs.length == 3 && clientInputs[2].contains("-z")) {
-                        Zip(clientInputs[1], out);
-                    } else {
 
+                        Zip(clientInputs[1], out);
+                    } else if(clientInputs.length == 3 && !clientInputs[2].contains("-z")) {
+
+                        out.writeUTF("le format de fichier que vous voulez n'existe pas \n");
+                   }else{
                         download(clientInputs[1], out);
-                   }
+                    }
                     break;
                 default:
                     out.writeUTF("Command not found, please try again.\n");
@@ -247,7 +252,7 @@ class ClientHandler extends Thread {
         FileOutputStream fileOut = new FileOutputStream(newFile);
         byte[] buffer = new byte[in.read()];
         int sizeOfPacket;
-        while ((sizeOfPacket = in.read(buffer)) != -1) { // store packet de donne dans le fichier
+        while ((sizeOfPacket = in.read(buffer)) != -1) {
             fileOut.write(buffer, 0, sizeOfPacket); // store les donne contenue dans le buffer et le met dans le fichier "newFile" cree
         }
         fileOut.close();
@@ -260,13 +265,15 @@ class ClientHandler extends Thread {
 
         int packetSize;
         int fileLenght = (int) newFile.length();
-        System.out.println(fileLenght);
         out.writeInt(fileLenght);
+
         byte [] buffer = new byte[fileLenght];
 
         while ((packetSize = uploadedFile.read(buffer)) != -1) {
             out.write(buffer, 0, packetSize);
+            System.out.println("size " + packetSize);
         }
+        out.writeInt(-1);
         uploadedFile.close();
     }
 
@@ -289,12 +296,12 @@ class ClientHandler extends Thread {
             zipFileOutput.write(buffer, 0, packetSize);
 
         }
-
+        zipFileOutput.flush();
         zipFileOutput.closeEntry();
         zipFileOutput.close();
         fileToZip.close();
-
         download(zipFileName, out);
+        delete(zipFileName, out);
     }
 
 }

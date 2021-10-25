@@ -1,5 +1,6 @@
 
 import javafx.scene.SubScene;
+import sun.lwawt.macosx.CSystemTray;
 
 import javax.xml.crypto.Data;
 import java.io.*;
@@ -83,6 +84,7 @@ public class Client {
 					if(consoleInput.length == 3){
 						isArchived = true;
 					}
+
 					download(consoleInput[1],isArchived, in);
 					break;
 				case "exit":
@@ -125,12 +127,14 @@ public class Client {
 			out.write(buffer, 0, packetSize);
 
 		}
+		out.close();
 		uploadedFile.close();
 	}
 
 	public static void download(String nomFichier, boolean isArchived, DataInputStream in) throws Exception{
 
 		String currentRep = System.getProperty("user.dir");
+		DataInputStream pin =  new DataInputStream(socket.getInputStream());
 
 		if(isArchived){
 			nomFichier = nomFichier.substring(0, nomFichier.indexOf(".")) + ".zip";
@@ -144,11 +148,16 @@ public class Client {
 			ZipOutputStream zipFileOutput = new ZipOutputStream(zipFile);
 			zipFileOutput.putNextEntry(new ZipEntry(newFile.getName())); // copies les byte de ran.jpeg dans le fichier zip
 		}
-		byte[] buffer = new byte[in.readInt()];
+		int size = in.readInt();
+		byte[] buffer = new byte[size];
 		int sizeOfPacket;
-		while ((sizeOfPacket = in.read(buffer)) != -1) {  // store packet de donne dans le fichier
-			fileOut.write(buffer, 0, sizeOfPacket);  // store les donne contenue dans le buffer et le met dans le fichier "newFile" cree
+		while ((sizeOfPacket = pin.read(buffer)) != -1) {   // store packet de donne dans le fichier
+			if(size <= 0)
+				break;
+			size -= sizeOfPacket;
+			fileOut.write(buffer, 0, sizeOfPacket);   // store les donne contenue dans le buffer et le met dans le fichier "newFile" cree
 		}
+		fileOut.flush();
 		fileOut.close();
 	}
 }
