@@ -46,7 +46,6 @@ public class Server {
             System.out.println("port Invalide.Essayer de nouveau");
             serverPort = Integer.parseInt(System.console().readLine());
         }
-
         listener = new ServerSocket();
         listener.setReuseAddress(true);
 
@@ -163,7 +162,6 @@ class ClientHandler extends Thread {
                         out.writeUTF("le format de fichier que vous voulez n'existe pas \n");
                    }else{
                         download(clientInputs[1], out);
-
                     }
 
                     break;
@@ -204,6 +202,7 @@ class ClientHandler extends Thread {
             System.out.println("Connection avec le client#" + clientNumber + "fermer");
             clientNumber -= 1;
         }
+
     }
     /**
      *  \Description Fonction qui permet se deplacer dans un repertoire enfant d'un repertoir du serveur de stockage
@@ -325,6 +324,7 @@ class ClientHandler extends Thread {
         }
         fileOut.flush();
         fileOut.close();
+        out.writeUTF("\n");
         out.writeUTF("Le fichier " + nomFichier + " a bien ete televerser.");
     }
 
@@ -349,11 +349,13 @@ class ClientHandler extends Thread {
         out.writeInt(fileLenght);
 
         byte [] buffer = new byte[fileLenght];
-
         while ((packetSize = uploadedFile.read(buffer)) != -1) {
             out.write(buffer, 0, packetSize);
         }
         out.flush();
+        uploadedFile.close();
+        out.writeUTF("\n");
+        out.writeUTF("Le fichier " + nomFichier + " a bien ete televerser.");
     }
 
     /**
@@ -363,6 +365,11 @@ class ClientHandler extends Thread {
      * \return void
      */
     public void Zip(String nomFichier, DataOutputStream out) throws Exception {
+
+        if (!ls(out, true).contains(nomFichier)) {
+            out.writeUTF("Aucun dossier ou fichier de ce nom existe");
+            return;
+        }
 
         File newFile = new File(currentRep + "/" + nomFichier);
         String zipFileName = nomFichier.substring(0, nomFichier.indexOf(".")) + ".zip";
@@ -377,14 +384,17 @@ class ClientHandler extends Thread {
 
         byte [] buffer = new byte[(int) newFile.length()];
         int packetSize;
+
         while ((packetSize = fileToZip.read(buffer)) != -1) {
             zipFileOutput.write(buffer, 0, packetSize);
 
         }
+
         zipFileOutput.flush();
         zipFileOutput.closeEntry();
         zipFileOutput.close();
         fileToZip.close();
+
         download(zipFileName, out);
     }
 

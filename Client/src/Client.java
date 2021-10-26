@@ -146,9 +146,9 @@ public class Client {
 		byte [] buffer = new byte[fileLenght];
 		while((packetSize = uploadedFile.read(buffer)) != -1){
 			out.write(buffer, 0, packetSize);
-
 		}
 		out.flush();
+		uploadedFile.close();
 	}
 
 	/**
